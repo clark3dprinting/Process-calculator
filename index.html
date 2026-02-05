@@ -89,6 +89,7 @@ function getScale() {
     sMax: parseFloat(document.getElementById("sigMax").value)
   };
 }
+
 function processToSignal() {
   const s = getScale();
   const p = parseFloat(document.getElementById("procInput").value);
@@ -96,6 +97,7 @@ function processToSignal() {
   const signal = s.sMin + (p - s.pMin)*(s.sMax - s.sMin)/(s.pMax - s.pMin);
   document.getElementById("output").innerText = signal.toFixed(3);
 }
+
 function signalToProcess() {
   const s = getScale();
   const sig = parseFloat(document.getElementById("sigInput").value);
@@ -104,16 +106,18 @@ function signalToProcess() {
   document.getElementById("output").innerText = process.toFixed(3);
 }
 
-/* ---------------- Counter API (with your token) ---------------- */
+/* ---------------- Counter API (v2) ---------------- */
 
-const countURL = 'https://api.counterapi.dev/hit/crossley-clarks-team/livecounter';
+const countURL = 'https://api.counterapi.dev/v2/crossley-clarks-team-2774/first-counter-2774/up';
 const token = 'ut_nX2vaLtalzaJfHiCxzvLTS3beYl9rm0vsOOmgoo6';
 
 async function updateCounter() {
   try {
     const res = await fetch(countURL, {
+      method: 'POST', // v2 API requires POST to increment
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     });
     const data = await res.json();
@@ -124,7 +128,7 @@ async function updateCounter() {
   }
 }
 
-// Update counter on page load
+// Update counter when the page loads
 updateCounter();
 </script>
 
