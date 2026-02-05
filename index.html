@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Process ↔ Signal Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #0a0a0a;
+    color: #eeeeee;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .box {
+    background: #1a1a1a;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 440px;
+    margin: auto;
+    border: 1px solid #333;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  h2 {
+    color: #ffffff;
+    letter-spacing: 1px;
+    margin-bottom: 25px;
+  }
+
+  h3 {
+    font-size: 14px;
+    color: #888;
+    text-transform: uppercase;
+    margin-top: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+    text-align: left;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  input {
+    width: 90%;
+    padding: 12px;
+    font-size: 16px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #222;
+    color: #fff;
+    transition: all 0.2s ease;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #888;
+    background: #2a2a2a;
+  }
+
+  button {
+    width: 90%;
+    padding: 12px 18px;
+    font-size: 15px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border: 1px solid #555;
+    cursor: pointer;
+    background: #333;
+    color: white;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  button:hover {
+    background: #444;
+    border-color: #777;
+  }
+
+  button:active {
+    background: #222;
+  }
+
+  .result {
+    font-size: 20px;
+    margin-top: 25px;
+    padding: 15px;
+    background: #111;
+    border-radius: 8px;
+    color: #ffffff;
+    border: 1px solid #333;
+  }
+
+  /* Live counter corner badge */
+  #liveCounter {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    background: #111;
+    border: 1px solid #333;
+    color: #aaa;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0.9;
+    pointer-events: none;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Process ↔ Signal</h2>
+
+  <h3>Process Scale</h3>
+  <input id="procMin" type="number" value="0">
+  <input id="procMax" type="number" value="100">
+
+  <h3>Signal Scale</h3>
+  <input id="sigMin" type="number" value="4">
+  <input id="sigMax" type="number" value="20">
+
+  <h3>Process → Signal</h3>
+  <input id="procInput" type="number" placeholder="Enter Process">
+  <button onclick="processToSignal()">Convert to Signal</button>
+
+  <h3>Signal → Process</h3>
+  <input id="sigInput" type="number" placeholder="Enter Signal">
+  <button onclick="signalToProcess()">Convert to Process</button>
+
+  <div class="result" id="output">Ready to convert</div>
+</div>
+
+<div id="liveCounter">● 0 online</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+/* ---------------- Calculator Logic ---------------- */
+
+function getScale() {
+  return {
+    pMin: parseFloat(procMin.value),
+    pMax: parseFloat(procMax.value),
+    sMin: parseFloat(sigMin.value),
+    sMax: parseFloat(sigMax.value)
+  };
+}
+
+function processToSignal() {
+  const s = getScale();
+  const p = parseFloat(procInput.value);
+  if (isNaN(p)) return;
+  const signal = s.sMin + (p - s.pMin) * (s.sMax - s.sMin) / (s.pMax - s.pMin);
+  output.innerText = signal.toFixed(3);
+}
+
+function signalToProcess() {
+  const s = getScale();
+  const sig = parseFloat(sigInput.value);
+  if (isNaN(sig)) return;
+  const process = s.pMin + (sig - s.sMin) * (s.pMax - s.pMin) / (s.sMax - s.sMin);
+  output.innerText = process.toFixed(3);
+}
+
+/* ---------------- Live Online Counter ---------------- */
+
+/* PASTE YOUR FIREBASE CONFIG BELOW */
+const firebaseConfig = {
+  apiKey: "PASTE",
+  authDomain: "PASTE",
+  databaseURL: "PASTE",
+  projectId: "PASTE"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const presenceRef = db.ref("presence");
+const me = presenceRef.push();
+
+me.set(true);
+me.onDisconnect().remove();
+
+presenceRef.on("value", snap => {
+  liveCounter.innerText = "● " + snap.numChildren() + " online";
+});
+</script>
+
+</body>
+</html>
